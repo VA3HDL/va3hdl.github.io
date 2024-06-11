@@ -55,6 +55,7 @@ const aURL = [
 // the comma at the end is important!
 // You can't add more items because there are only 12 placeholders on the dashboard
 // but you can replace the titles and the images with anything you want.
+const currentDate = new Date();
 const aIMG = [
   ["RADAR", "https://radar.weather.gov/ridge/standard/CONUS_loop.gif"],
   [
@@ -89,7 +90,7 @@ const aIMG = [
   ["GREY LINE", "https://www.timeanddate.com/scripts/sunmap.php?iso=now"],
   [
     "THIS IS A VIDEO!",
-    "https://himawari8.nict.go.jp/movie/720/20240608_pifd.mp4?uid=1717872861663",
+    "https://himawari8.nict.go.jp/movie/720/" + currentDate.toISOString().slice(0, 10).replace(/-/g, '') + "_pifd.mp4",
   ],
   ["10M PROPAGATION", "https://www.tvcomm.co.uk/g7izu/Autosave/NA_ES_AutoSave.JPG"],
   ["HF PROPAGATION",
