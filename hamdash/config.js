@@ -32,6 +32,7 @@ const aURL = [
     "R"
   ],
   ["2196F3", "WINLINK", "https://cms.winlink.org:444/maps/propagation.aspx", "1"],
+  ["2196F3", "Stuff In Space", "https://stuffin.space/", "1", "R"],
   ["2196F3", "TIME.IS", "https://time.is/", "1", "R"],
   [
     "2196F3",
