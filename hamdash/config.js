@@ -92,7 +92,8 @@ const aIMG = [
   ["GREY LINE", "https://www.timeanddate.com/scripts/sunmap.php?iso=now"],
   [
     "THIS IS A VIDEO!",
-    "https://himawari8.nict.go.jp/movie/720/" + currentDate.toISOString().slice(0, 10).replace(/-/g, '') + "_pifd.mp4",
+    // "https://himawari8.nict.go.jp/movie/720/" + currentDate.toISOString().slice(0, 10).replace(/-/g, '') + "_pifd.mp4",
+    "https://himawari8.nict.go.jp/movie/720/20240611_pifd.mp4",
   ],
   ["10M PROPAGATION", "https://www.tvcomm.co.uk/g7izu/Autosave/NA_ES_AutoSave.JPG"],
   ["HF PROPAGATION",
