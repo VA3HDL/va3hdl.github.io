@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css?family=Victor Mono|Audiowide|Bebas Neue"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <title>CAT Frequencies</title>
+    <!--
+.d8888. d888888b db    db db      d88888b .d8888.
+88'  YP `~~88~~' `8b  d8' 88      88'     88'  YP
+`8bo.      88     `8bd8'  88      88ooooo `8bo.
+  `Y8b.    88       88    88      88~~~~~   `Y8b.
+db   8D    88       88    88booo. 88.     db   8D
+`8888Y'    YP       YP    Y88888P Y88888P `8888Y'
+
+
+-->
+    <style>
+      .main-div {
+        display: grid;
+        grid-template-columns: 1fr 5fr;
+        background-color: #333;
+        color: #fff;
+        padding: 10px;
+        border: 0px none;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .child {
+        position: relative;
+        border: 1px solid hsl(210deg 8% 50%);
+        border-radius: 5px;
+        background: hsl(210deg 15% 20%);
+        max-height: 93vh;
+        overflow: auto;
+      }
+
+      .title {
+        float: left;
+        background-color: #ff9900;
+        font-size: 1.2vw;
+        border-left: 0.25vw solid #ff9900;
+        border-right: 0.25vw solid #ff9900;
+        font-family: "Roboto Condensed", sans-serif;
+        padding: 2px;
+        max-height: 2vw;
+      }
+
+      .vfo {
+        float: right;
+        /* background-color: #ff0000; */
+        font-size: 2.5vw;
+        /* border-left: 0.25vw solid #ff9900;
+        border-right: 0.25vw solid #ff9900; */
+        font-family: "Syne Mono", sans-serif;
+        padding: 0px;
+        max-height: 1vw;
+      }
+
+      .azi-muth {
+        font-family: "Syne Mono", sans-serif;
+        font-size: 2vw;
+        padding-top: 10px;
+      }
+
+      .ham-proxy {
+        font-family: monospace, sans-serif;
+        font-size: 0.6vw;
+        padding-top: 10px;
+      }
+
+      .clock-container {
+        clear: both;
+        width: 300px;
+        height: 300px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url("Brosen_windrose.svg");
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-color: aquamarine;
+      }
+
+      .clock-face {
+        width: 90%;
+        height: 90%;
+        position: relative;
+      }
+
+      .arrow-container {
+        padding: 0;
+        margin: auto;
+        display: block;
+        width: 270px;
+        height: 270px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        pointer-events: none; /* Allows clicks to pass through the canvas */
+        /* background-color: antiquewhite; */
+      }
+
+      #arrowcontainer {
+        position: absolute;
+        width: 4px;
+        height: 75%;
+        background: red;
+        transform-origin: center;
+        transition: transform 0.5s ease;
+      }
+
+      #arrowhead {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 15px solid red;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+      }
+
+      .rot-button {
+        width: 25px;
+        height: 25px;
+        background-color: #04395c;
+        border-radius: 50%;
+        position: absolute;
+        transform: translateX(-50%) translateY(-50%);
+        cursor: pointer;
+      }
+
+      .rot-button-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-family: "Victor Mono", sans-serif;
+        font-size: 11px;
+      }
+
+      .clear-both {
+        clear: both;
+      }
+
+      .table-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .table-column {
+        flex: 1 1 200px;
+        overflow: hidden;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        color: black;
+        font-family: "Roboto Condensed", sans-serif;
+        font-size: 0.7vw;
+        font-style: normal;
+      }
+
+      th,
+      td {
+        padding: 2px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        color: white;
+      }
+
+      th {
+        background-color: chocolate;
+      }
+    </style>
+  </head>
+  <!--
+.d8888.  .o88b. d8888b. d888888b d8888b. d888888b .d8888.
+88'  YP d8P  Y8 88  `8D   `88'   88  `8D `~~88~~' 88'  YP
+`8bo.   8P      88oobY'    88    88oodD'    88    `8bo.
+  `Y8b. 8b      88`8b      88    88~~~      88      `Y8b.
+db   8D Y8b  d8 88 `88.   .88.   88         88    db   8D
+`8888Y'  `Y88P' 88   YD Y888888P 88         YP    `8888Y'
+
+
+-->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const clockFace = document.querySelector(".clock-face");
+      const buttonCount = 24; // Number of buttons
+      const radius = 50; // Radius of the circle
+      const offsetAngle = -90; // Start from the 12 o'clock position
+
+      for (let i = 0; i < buttonCount; i++) {
+        const angle = (360 / buttonCount) * i + offsetAngle;
+        const button = document.createElement("div");
+        button.className = "rot-button";
+        button.style.left = `${
+          radius * Math.cos((angle * Math.PI) / 180) + 50
+        }%`;
+        button.style.top = `${
+          radius * Math.sin((angle * Math.PI) / 180) + 50
+        }%`;
+
+        // Add onclick event handler to each button
+        button.onclick = function () {
+          // Perform an action when the button is clicked
+          rot((i * 15).toString());
+        };
+
+        const label = document.createElement("div");
+        label.className = "rot-button-label";
+        label.textContent = (i * 15).toString();
+
+        button.appendChild(label);
+        clockFace.appendChild(button);
+      }
+    });
+
+    // default Hamlib port for 1st Radio
+    var port = "4531";
+    //
+    var hdg = 0;
+
+    function SetPort() {
+      port = document.getElementById("port").value;
+      document.getElementById("CATport").innerText =
+        "Hamlib CAT Port in use: " + port;
+    }
+
+    function HamProxyVersion() {
+      url = "http://localhost:8073/version";
+      // Make the POST request using the Fetch API
+      fetch(url)
+        .then((response) => response.text())
+        .then((data) => {
+          data = JSON.parse(data);
+          VERSION_CHECK = {
+            data: data,
+            updated: Date.now(),
+            latestVer: data.version,
+          };
+          document.getElementById("hamproxy").innerHTML =
+            "Ham-Apps-Proxy version: <br>" + data.version;
+        });
+    }
+
+    function fmtMHz(frequency) {
+      const freqMHz = frequency.split(".");
+      if (!freqMHz[1]) {
+        freqMHz[1] = "0";
+      }
+      // Format the text
+      return freqMHz[0].padStart(3, "\xa0") + "." + freqMHz[1].padEnd(3, "0");
+    }
+
+    function get_vfo() {
+      url = "http://localhost:8073/rigctl/f?&__port=" + port;
+      // Make the POST request using the Fetch API
+      // {"frequency":"0.53","mode":"AM","width":"15000"}
+      fetch(url)
+        .then((response) => response.text())
+        .then((data) => {
+          data = JSON.parse(data);
+          document.getElementById("vfo").innerHTML =
+            "VFO  " +
+            fmtMHz(data.frequency) +
+            " MHz | Mode " +
+            data.mode.padEnd(3, "\xa0") +
+            " | Width " +
+            data.width.padEnd(6, "\xa0");
+        });
+    }
+
+    function get_rot() {
+      // Rotator uses Hamlib port 4535
+      url = "http://localhost:8073/rotctl/p?&__port=4535";
+      // Make the POST request using the Fetch API
+      fetch(url)
+        .then((response) => response.text())
+        .then((data) => {
+          data = JSON.parse(data);
+          az = data.azimuth.split(".");
+          document.getElementById("azimuth").innerHTML = "Bearing " + az[0] + "&deg;";
+          hdg = +az[0];
+          setNeedleDirection(hdg);
+        });
+      get_vfo();
+    }
+
+    function setNeedleDirection(degrees) {
+      const needle = document.getElementById("arrowcontainer");
+      needle.style.transform = `rotate(${degrees}deg)`;
+    }
+
+    getRotId = setInterval(() => get_rot(), 1500);
+
+    function qsy(freq, modo) {
+      // Define the URL where you want to send the POST request
+
+      freqHz = parseFloat(freq) * 1000000;
+      url = "http://localhost:8073/rigctl/F?" + freqHz + "&__port=" + port;
+      // Make the POST request using the Fetch API
+      fetch(url, { mode: "no-cors" })
+        .then((result) => {
+          console.log("POST request successful:", result);
+          // Handle the response data here
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          // Handle any errors here
+        });
+
+      // Delay the mode set 500ms
+      setTimeout(function () {
+        url = "http://localhost:8073/rigctl/M?" + modo + " -1&__port=" + port;
+        // Make the POST request using the Fetch API
+        fetch(url, { mode: "no-cors" })
+          .then((result) => {
+            console.log("POST request successful:", result);
+            // Handle the response data here
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            // Handle any errors here
+          });
+      }, 500);
+    }
+
+    function rot(heading) {
+      // Define the URL where you want to send the POST request
+      const port = "4535";
+      url = "http://localhost:8073/rotctl/P?" + heading + " 0&__port=" + port;
+      // Make the POST request using the Fetch API
+      fetch(url, { mode: "no-cors" })
+        .then((result) => {
+          console.log("POST request successful:", result);
+          // Handle the response data here
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          // Handle any errors here
+        });
+    }
+
+    function search(ele) {
+      if (event.key === "Enter") {
+        qsy(ele.value);
+      }
+    }
+
+    window.onload = function () {
+      HamProxyVersion();
+      get_rot();
+      get_vfo();
+    };
+
+    // Add or remove "memories" below observing the format, commas, etc.
+    //
+    document.addEventListener("DOMContentLoaded", function () {
+      let aRows = [
+        ["6M Call", "USB", "50.125", "FALSE"],
+        ["10M Call", "USB", "28.400", "FALSE"],
+        ["10M C4FM", "C4FM", "29.250", "FALSE"],
+        ["10M FM", "FM", "29.600", "FALSE"],
+        ["15M Call", "USB", "21.200", "FALSE"],
+        ["20M Maritime", "USB", "14.300", "FALSE"],
+        ["20M Call", "USB", "14.200", "FALSE"],
+        ["40M Truckers", "LSB", "7.133", "FALSE"],
+        ["80M ONTARS", "LSB", "3.755", "FALSE"],
+        ["FT8 160m", "USB", "1.840", "FALSE"],
+        ["FT8 160m JS8Call", "USB", "1.842", "FALSE"],
+        ["FT8 80m ", "USB", "3.573", "FALSE"],
+        ["FT8 60m ", "USB", "5.357", "FALSE"],
+        ["FT8 40m Region 1", "USB", "7.056", "FALSE"],
+        ["FT8 40m ", "USB", "7.071", "FALSE"],
+        ["FT8 40m ", "USB", "7.074", "FALSE"],
+        ["FT8 40m JS8Call", "USB", "7.078", "FALSE"],
+        ["FT8 30m JS8Call", "USB", "10.130", "FALSE"],
+        ["FT8 30m Region 1", "USB", "10.132", "FALSE"],
+        ["FT8 30m ", "USB", "10.133", "FALSE"],
+        ["FT8 30m ", "USB", "10.136", "FALSE"],
+        ["FT8 20m ", "USB", "14.071", "FALSE"],
+        ["FT8 20m ", "USB", "14.074", "FALSE"],
+        ["FT8 20m JS8Call", "USB", "14.078", "FALSE"],
+        ["FT8 20m Region 1", "USB", "14.090", "FALSE"],
+        ["FT8 17m ", "USB", "18.100", "FALSE"],
+        ["FT8 17m JS8Call", "USB", "18.104", "FALSE"],
+        ["FT8 15m ", "USB", "21.074", "FALSE"],
+        ["FT8 15m JS8Call", "USB", "21.078", "FALSE"],
+        ["FT8 15m ", "USB", "21.091", "FALSE"],
+        ["FT8 12m ", "USB", "24.915", "FALSE"],
+        ["FT8 10m ", "USB", "28.074", "FALSE"],
+        ["FT8 10m JS8Call", "USB", "28.078", "FALSE"],
+        ["FT8 6m", "USB", "50.310", "FALSE"],
+        ["FT8 6m", "USB", "50.313", "FALSE"],
+        ["FT8 6m JS8Call", "USB", "50.328", "FALSE"],
+        ["FT8 6m", "USB", "50.323", "FALSE"],
+        ["FT8 4m", "USB", "70.100", "FALSE"],
+        ["FT8 2m", "USB", "144.174", "FALSE"],
+        ["FT8 1.25m", "USB", "222.065", "FALSE"],
+        ["FT8 70cm", "USB", "432.065", "FALSE"],
+        ["Air Twr Bck", "AM", "118.0", "FALSE"],
+        ["Air Twr S", "AM", "118.35", "FALSE"],
+        ["Air Twr N", "AM", "118.7", "FALSE"],
+        ["Air Gnd C", "AM", "119.1", "FALSE"],
+        ["Air Gnd N", "AM", "121.65", "FALSE"],
+        ["Air Gnd S", "AM", "121.9", "FALSE"],
+        ["Air S Apron", "AM", "122.075", "FALSE"],
+        ["Air N Apron", "AM", "122.275", "FALSE"],
+        ["Air Apr Bck", "AM", "122.825", "FALSE"],
+        ["Air Apr Coo", "AM", "122.875", "FALSE"],
+        ["Air Emerg", "AM", "122.675", "FALSE"],
+        ["Air ATIS P", "AM", "120.825", "FALSE"],
+        ["Air ATIS S", "AM", "133.1", "FALSE"],
+        ["Air Clear", "AM", "121.3", "FALSE"],
+        ["Air Arr 1", "AM", "132.8", "FALSE"],
+        ["Air Arr 2", "AM", "124.475", "FALSE"],
+        ["Air Arr 3", "AM", "125.4", "FALSE"],
+        ["Air Depar 1", "AM", "127.575", "FALSE"],
+        ["Air Depar 2", "AM", "128.8", "FALSE"],
+        ["Air ILS Mon", "AM", "134.175", "FALSE"],
+        ["Air PAR Mon", "AM", "134.15", "FALSE"],
+        ["Air Lon FSS", "AM", "123.275", "FALSE"],
+        ["Air Em Ch", "AM", "121.5", "FALSE"],
+        ["Air De-IceA", "AM", "131.175", "FALSE"],
+        ["Air De-IceB", "AM", "131.95", "FALSE"],
+        ["Air De-Ice1", "AM", "131.375", "FALSE"],
+        ["Air De-Ice4", "AM", "129.625", "FALSE"],
+        ["Ch.01", "AM", "26.965", "FALSE"],
+        ["Ch.02", "AM", "26.975", "FALSE"],
+        ["Ch.03", "AM", "26.985", "FALSE"],
+        ["Ch.04", "AM", "27.005", "FALSE"],
+        ["Ch.05", "AM", "27.015", "FALSE"],
+        ["Ch.06", "AM", "27.025", "FALSE"],
+        ["Ch.07", "AM", "27.035", "FALSE"],
+        ["Ch.08", "AM", "27.055", "FALSE"],
+        ["Ch.09 - Emrg", "AM", "27.065", "FALSE"],
+        ["Ch.10", "AM", "27.075", "FALSE"],
+        ["Ch.11", "AM", "27.085", "FALSE"],
+        ["Ch.12", "AM", "27.105", "FALSE"],
+        ["Ch.13", "AM", "27.115", "FALSE"],
+        ["Ch.14", "AM", "27.125", "FALSE"],
+        ["Ch.15", "AM", "27.135", "FALSE"],
+        ["Ch.16", "AM", "27.155", "FALSE"],
+        ["Ch.17", "AM", "27.165", "FALSE"],
+        ["Ch.18", "AM", "27.175", "FALSE"],
+        ["Ch.19 - Hwy", "AM", "27.185", "FALSE"],
+        ["Ch.20", "AM", "27.205", "FALSE"],
+        ["Ch.21", "AM", "27.215", "FALSE"],
+        ["Ch.22", "AM", "27.225", "FALSE"],
+        ["Ch.23", "AM", "27.255", "FALSE"],
+        ["Ch.24", "AM", "27.235", "FALSE"],
+        ["Ch.25", "AM", "27.245", "FALSE"],
+        ["Ch.26", "AM", "27.265", "FALSE"],
+        ["Ch.27", "AM", "27.275", "FALSE"],
+        ["Ch.28", "AM", "27.285", "FALSE"],
+        ["Ch.29", "AM", "27.295", "FALSE"],
+        ["Ch.30", "AM", "27.305", "FALSE"],
+        ["Ch.31", "AM", "27.315", "FALSE"],
+        ["Ch.32", "AM", "27.325", "FALSE"],
+        ["Ch.33", "AM", "27.335", "FALSE"],
+        ["Ch.34", "AM", "27.345", "FALSE"],
+        ["Ch.35", "AM", "27.355", "FALSE"],
+        ["Ch.36", "AM", "27.365", "FALSE"],
+        ["Ch.37", "AM", "27.375", "FALSE"],
+        ["Ch.38", "AM", "27.385", "FALSE"],
+        ["Ch.39", "AM", "27.395", "FALSE"],
+        ["Ch.40", "AM", "27.405", "FALSE"],
+        ["CHLO Radio", "AM", "0.530", "FALSE"],
+        ["CJCL Fan", "AM", "0.590", "FALSE"],
+        ["CFMJ Toronto Radio", "AM", "0.640", "FALSE"],
+        ["CFTR CityNews", "AM", "0.680", "FALSE"],
+        ["CFZM Zoomer Radio", "AM", "0.740", "FALSE"],
+        ["CKNT Sauga", "AM", "0.960", "FALSE"],
+        ["CFRB Newstalk", "AM", "1.010", "FALSE"],
+        ["CHUM TSN Radio", "AM", "1.050", "FALSE"],
+        ["CJYE Joy", "AM", "1.250", "FALSE"],
+        ["CJMR Voice of the City", "AM", "1.320", "FALSE"],
+        ["CIRF Radio Humsafar", "AM", "1.350", "FALSE"],
+        ["CHKT", "AM", "1.430", "FALSE"],
+        ["CHIN Time", "AM", "1.540", "FALSE"],
+        ["CKDO", "AM", "1.580", "FALSE"],
+        ["CHHA Latina", "AM", "1.610", "FALSE"],
+        ["CINA", "AM", "1.650", "FALSE"],
+        ["CHTO Hellenic", "AM", "1.690", "FALSE"],
+        ["CFRX Newstalk", "AM", "6.070", "FALSE"],
+        // Add more rows as needed
+      ];
+
+      function sortTwoArrays(a, b) {
+        return a[2] - b[2];
+      }
+      aRows.sort(sortTwoArrays);
+
+      const rowsPerColumn = (window.innerHeight - 140) / 30; // Adjust this number to control the number of rows per column
+      const container = document.getElementById("table-container");
+
+      function createTableColumn() {
+        const column = document.createElement("div");
+        column.className = "table-column";
+
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        thead.innerHTML = `
+            <tr>
+                <th>Name</th><th>Mode</th><th>Freq.</th><th>Scan</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+
+        column.appendChild(table);
+        container.appendChild(column);
+
+        return tbody;
+      }
+
+      let currentTbody = createTableColumn();
+      let rowCount = 0;
+      let memCount = 0;
+
+      aRows.forEach((row) => {
+        if (rowCount >= rowsPerColumn) {
+          currentTbody = createTableColumn();
+          rowCount = 0;
+        }
+
+        var colCount = 0;
+        const tr = document.createElement("tr");
+        row.forEach((cell) => {
+          const td = document.createElement("td");
+          switch (colCount) {
+            case 0:
+              td.textContent = cell;
+              td.style =
+                "margin: 0px; padding: 1px; white-space: nowrap; overflow: hidden;";
+              preName = cell;
+              break;
+            case 1:
+              td.textContent = cell;
+              preMode = cell;
+              break;
+            case 2:
+              td.innerHTML = `<button id='postButton' onclick='qsy("${cell}", "${preMode}");' style="margin:0px;padding:1px;width:60px;">${fmtMHz(cell)}</button>`;
+              preFreq = cell;
+              break;
+            case 3:
+              td.innerHTML = `<td><input type='checkbox' id='mem${memCount}' data-name='${preName}' data-freq='${preFreq}' data-mode='${preMode}' ${cell} style="margin:0px;padding:0px;"></td>`;
+              break;
+            default:
+            //;
+          }
+          tr.appendChild(td);
+          colCount++;
+          memCount++;
+        });
+
+        currentTbody.appendChild(tr);
+        rowCount++;
+      });
+
+      // Create the button element
+      const bScan = document.createElement("button");
+      bScan.textContent = "► Scan";
+      bScan.id = "scanButton";
+
+      const bPaus = document.createElement("button");
+      bPaus.textContent = "II Scan";
+      bPaus.id = "pausButton";
+
+      const bStop = document.createElement("button");
+      bStop.textContent = "[] Scan";
+      bStop.id = "stopButton";
+
+      // Append the button to the body of the document
+      document.getElementById("cat").appendChild(bScan);
+      document.getElementById("cat").appendChild(bPaus);
+      document.getElementById("cat").appendChild(bStop);
+
+      let intervalId = null;
+      let currentIndex = 0;
+      let iMillis = 5000;
+
+      function performAction(index) {
+        console.log("performAction");
+        iDwell = +document.getElementById("pause").value;
+        if (iDwell > 0) {
+          iMillis = iDwell;
+        }
+        if (index < checkboxes.length) {
+          if (checkboxes[index].checked) {
+            console.log(`Action performed on item ${index + 1}`);
+            qsy(
+              checkboxes[index].getAttribute("data-freq"),
+              checkboxes[index].getAttribute("data-mode")
+            );
+          } else {
+            console.log(`Not Checked on item ${index + 1}`);
+          }
+          currentIndex = index + 1;
+          if (currentIndex < checkboxes.length && intervalId) {
+            intervalId = setTimeout(() => performAction(currentIndex), iMillis);
+          } else {
+            currentIndex = 0; // Reset index for the next start
+            // loop - need to add option on the UI
+            intervalId = setTimeout(() => performAction(currentIndex), iMillis);
+          }
+        }
+      }
+
+      let lastIndex = 0;
+      bScan.addEventListener("click", () => {
+        if (!intervalId) {
+          currentIndex = lastIndex; // Start from the last checkbox scanned
+          checkboxes = document.querySelectorAll(
+            "input[type^='checkbox']:checked"
+          );
+          intervalId = setTimeout(() => performAction(currentIndex), 0); // Start immediately
+          console.log("Start");
+        }
+      });
+
+      bPaus.addEventListener("click", () => {
+        if (intervalId) {
+          clearTimeout(intervalId);
+          intervalId = null;
+          lastIndex = currentIndex;
+          console.log("Paused at ", lastIndex);
+        }
+      });
+
+      bStop.addEventListener("click", () => {
+        if (intervalId) {
+          clearTimeout(intervalId);
+          intervalId = null;
+          lastIndex = 0;
+          console.log("Stop");
+        }
+      });
+
+      const filterInput = document.getElementById("filter");
+      filterInput.addEventListener("input", () => {
+        const filterText = filterInput.value.toLowerCase();
+        const checkboxes = document.querySelectorAll(
+          'input[type="checkbox"][data-name]'
+        );
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = false;
+          const dataName = checkbox.getAttribute("data-name").toLowerCase();
+          if (filterText.length > 0 && dataName.includes(filterText)) {
+            checkbox.checked = !checkbox.checked;
+          }
+        });
+        if (intervalId) {
+          clearTimeout(intervalId);
+          intervalId = null;
+          lastIndex = 0;
+          console.log("Filter change while scan was running");
+        }
+      });
+    });
+  </script>
+  <!--
+d8888b.  .d88b.  d8888b. db    db
+88  `8D .8P  Y8. 88  `8D `8b  d8'
+88oooY' 88    88 88   88  `8bd8'
+88~~~b. 88    88 88   88    88
+88   8D `8b  d8' 88  .8D    88
+Y8888P'  `Y88P'  Y8888D'    YP
+
+
+-->
+  <body style="background-color: rgb(0, 0, 0); color: #ff9900">
+    <div class="main-div">
+      <!-- Main content -->
+      <div class="child">
+        <!-- Bearing -->
+        <div class="title">Rotator bearing</div>
+        <div class="clock-container">
+          <div class="clock-face">
+            <div class="arrow-container" id="arrowcontainer">
+              <div id="arrowhead"></div>
+            </div>
+            <!-- Buttons will be added here dynamically -->
+          </div>
+        </div>
+        <div class="azi-muth" id="azimuth">Bearing unreacheable</div>
+        <div class="ham-proxy" id="hamproxy">HamProxyApps unreacheable</div>
+      </div>
+      <div class="child" style="font-family: 'Roboto Condensed', sans-serif">
+        <div class="title">CAT Frequencies</div>
+        <div class="vfo" id="vfo">VFO</div>
+        <div class="clear-both" style="padding: 10px">
+          <select id="port" name="port" onChange="SetPort()">
+            <option value="“blank”" selected>Select radio</option>
+            <!-- Add or remove Hamlib ports and radios below-->
+            <option value="4530">SDR++</option>
+            <option value="4531">Dummy</option>
+            <option value="4532">FT-991A</option>
+            <option value="4533">FT-857D</option>
+            <option value="4534">FT-757GX</option>
+          </select>
+        </div>
+        <div class="clear-both" id="cat">
+          <span id="CATport" style="padding-left: 10px"
+            >Hamlib CAT Port in use: NONE</span
+          >
+          <label for="filter" style="padding-left: 10px">Freq: </label>
+          <input
+            role="presentation"
+            autocomplete="off"
+            type="text"
+            id="jump"
+            placeholder="Freq in MHz"
+            size="10"
+            onkeydown="search(this)"
+          />
+          <button
+            id="jmpBtn"
+            onclick='qsy(document.getElementById("jump").value);'
+            style="margin: 0px; padding: 1px; width: 30px"
+          >
+            Go
+          </button>
+
+          <label for="filter" style="padding-left: 10px">Scan Filter: </label>
+          <input type="text" id="filter" placeholder="Enter text to filter" />
+
+          <label for="pause" style="padding-left: 10px">Wait: </label>
+          <input
+            type="text"
+            id="pause"
+            placeholder="ms"
+            size="5"
+            value="5000"
+          />
+        </div>
+        <!-- Frequencies -->
+        <div class="table-container" id="table-container">
+          <table id="table">
+            <tbody id="table-body">
+              <!-- Table rows will be inserted here by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css?family=Victor Mono|Audiowide|Bebas Neue"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <title>Rotator Controller</title>
+    <style>
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+      .spawnMarker {
+        background-color: rgba(0, 0, 0, 0.1);
+        border: 0px;
+        position: relative;
+        display: inline-block;
+        left: -0.25em;
+        top: -0.5em;
+      }
+
+      .azi-muth {
+        font-family: "Syne Mono", sans-serif;
+        font-size: 2vw;
+        padding-top: 10px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .locator {
+        clear: both;
+        z-index: 9999;
+        display: block;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: #fff;
+        padding: 1vh;
+        border: 0px none;
+        overflow: hidden;
+        position: absolute;
+        width: auto;
+        top: 0;
+        left: 43%;
+        font-family: "Roboto Condensed", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="azi-muth" id="azimuth">Bearing unreacheable</div>
+    <div class="locator" id="cat">
+      <label for="jump" style="padding-left: 10px">Locator: </label>
+      <input
+        role="presentation"
+        autocomplete="off"
+        type="text"
+        id="jump"
+        placeholder="locator"
+        size="10"
+        onkeydown="search(this)"
+      />
+      <button
+        id="jmpBtn"
+        onclick='fLoc(document.getElementById("jump").value);'
+        style="margin: 0px; padding: 1px; width: 30px"
+      >
+        Go
+      </button>
+      <button
+        id="rstBtn"
+        onclick="reset();"
+        style="margin: 0px; padding: 1px; width: 50px"
+      >
+        Reset
+      </button>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="maidenhead.js"></script>
+    <script>
+      // Force your Latitude and Longitude with the values below
+      //
+      // const myQTH = { lat: 40.12345, lng: -100.12345 };
+      //
+      // Define the rotator port for Hamlib (rotctld)
+      const port = "4535";
+      //
+      var hdg = 0;
+
+      // Set the rotator heading/bearing/azimuth
+      function rot(heading) {
+        url = "http://localhost:8073/rotctl/P?" + heading + " 0&__port=" + port;
+        // Make the POST request using the Fetch API
+        fetch(url, { mode: "no-cors" })
+          .then((result) => {
+            console.log("POST request successful:", result);
+            // Handle the response data here
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            // Handle any errors here
+          });
+      }
+
+      // Get the rotator heading/bearing/azimuth and show on the map
+      function get_rot() {
+        url = "http://localhost:8073/rotctl/p?&__port=" + port;
+        // Make the POST request using the Fetch API
+        fetch(url)
+          .then((response) => response.text())
+          .then((data) => {
+            data = JSON.parse(data);
+            az = data.azimuth.split(".");
+            document.getElementById("azimuth").innerHTML =
+              "Bearing " + az[0] + "&deg;";
+            popup.setContent("Az " + az[0] + "&deg;");
+            // console.log("Popup Id: ", popup._leaflet_id);
+          });
+      }
+
+      // Read the rotator heading/bearing/azimuth every 1.5 seconds
+      if (typeof port !== "undefined") {
+        getRotId = setInterval(() => get_rot(), 1500);
+      }
+
+      // Initialize the map
+      var map = L.map("map").setView([0, 0], 5);
+
+      // Add OpenStreetMap tiles
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Add the locator squares
+      const maidenhead2 = L.maidenhead({ precision: 2 });
+      const maidenhead4 = L.maidenhead({ precision: 4 });
+      const maidenhead6 = L.maidenhead({ precision: 6 });
+      const maidenhead8 = L.maidenhead({ precision: 8 });
+      maidenhead2.addTo(map);
+
+      // Before zooming
+      map.on("zoomstart", function (e) {
+        console.log("ZOOMSTART", e);
+        console.log(map.getZoom());
+        // Remove the previous line if it exists
+        if (line) {
+          line.remove();
+        }
+        if (circleMarker) {
+          circleMarker.remove();
+        }
+        if (rectLoc) {
+          rectLoc.remove();
+          console.log("1.Removing locator Id: ", rectLoc._leaflet_id);
+        }
+        maidenhead2.remove();
+        maidenhead4.remove();
+        maidenhead6.remove();
+        maidenhead8.remove();
+      });
+
+      // After zooming
+      map.on("zoomend", function (e) {
+        console.log("ZOOMEND", e);
+        console.log(map.getZoom());
+        zoom = map.getZoom();
+        switch (true) {
+          case zoom <= 2:
+            console.log("No grid");
+            break;
+          case zoom <= 5:
+            maidenhead2.addTo(map);
+            console.log("Precision 2");
+            break;
+          case zoom <= 10:
+            maidenhead4.addTo(map);
+            console.log("Precision 4");
+            break;
+          case zoom <= 13:
+            maidenhead6.addTo(map);
+            console.log("Precision 6");
+            break;
+          case zoom <= 19:
+            maidenhead8.addTo(map);
+            console.log("Precision 8");
+            break;
+          default:
+            console.log("This should not happen");
+        }
+        // Restore layers
+        if (userMarker) {
+          userMarker.openPopup();
+        }
+        if (line) {
+          line.addTo(map);
+        }
+        if (circleMarker) {
+          circleMarker.addTo(map);
+          circleMarker.openPopup();
+        }
+        if (rectLoc) {
+          rectLoc.addTo(map);
+          console.log("1.Adding Locator Id: ", rectLoc._leaflet_id);
+        }
+      });
+
+      // Define user's location and marker and popup
+      var userLocation;
+      var userMarker = L.marker([0, 0]).addTo(map);
+      var popup = L.popup();
+      // Reset the map and center to user location
+      function reset() {
+        popup.options.autoPan = false;
+        popup.options.keepInView = false;
+        if (typeof myQTH !== "undefined") {
+          userLocation = myQTH;
+          userMarker.setLatLng(userLocation);
+          map.setView(userLocation, 5);
+          console.log("Forced location: ", myQTH);
+        } else {
+          // Get the user's location and initial zoom level Range is 1 to 13 - Ideal is 5
+          map.locate({ setView: true, maxZoom: 5 });
+          // Handle location found
+          map.on("locationfound", function (e) {
+            userLocation = e.latlng;
+            userMarker.setLatLng(userLocation);
+            console.log("Detected location: ", e.latlng);
+          });
+        }
+        // complete the initial popup
+        popup.setContent("You are here");
+        userMarker.bindPopup(popup).openPopup();
+
+        // clean up map layers if used
+        if (line) {
+          line.remove();
+          line = null;
+        }
+        if (circleMarker) {
+          circleMarker.remove();
+          circleMarker = null;
+        }
+        if (rectLoc) {
+          rectLoc.remove();
+          console.log("2.Removing locator (reset) Id: ", rectLoc._leaflet_id);
+          rectLoc = null;
+        }
+        // re-center the map to user location
+        if (userLocation) {
+          map.setView(userLocation);
+        }
+      }
+
+      // Initialize the map for the first time
+      reset();
+
+      // Initialize the line and arrow marker
+      var line;
+      var circleMarker;
+      var cMpopUp = L.popup();
+      cMpopUp.options.autoPan = false;
+      cMpopUp.options.keepInView = false;
+      // Handle click event on the map
+      map.on("click", function (e) {
+        if (!userLocation) {
+          alert("Location missing...");
+          return;
+        }
+
+        var clickLocation = e.latlng;
+        var bearing = calculateBearing(
+          userLocation.lat,
+          userLocation.lng,
+          clickLocation.lat,
+          clickLocation.lng
+        );
+        var distance = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          clickLocation.lat,
+          clickLocation.lng
+        );
+
+        // Remove the previous line if it exists
+        if (line) {
+          line.remove();
+        }
+        if (circleMarker) {
+          circleMarker.remove();
+        }
+
+        // Draw a line from user location to the clicked point
+        line = L.polyline([userLocation, clickLocation], {
+          color: "blue",
+        }).addTo(map);
+
+        // Add a circle marker at the clicked point
+        circleMarker = L.circleMarker(clickLocation, {
+          radius: 8,
+          color: "red",
+          autoPan: false,
+          keepInView: false,
+        }).addTo(map);
+
+        // Display bearing and distance information
+        cMpopUp.setContent(
+          "Bearing: " +
+            bearing.toFixed(2) +
+            "&deg; <br>Distance: " +
+            distance.toFixed(2) +
+            " km<br>Latitude: " +
+            rtrim(clickLocation.lat, 8) +
+            "<br>Longitude: " +
+            rtrim(clickLocation.lng, 9) +
+            "<br>Locator: " +
+            L.Maidenhead.latLngToIndex(clickLocation.lat, clickLocation.lng, 8)
+        );
+
+        circleMarker.bindPopup(cMpopUp).openPopup();
+
+        hdg = bearing.toFixed(2);
+        circleMarker.addEventListener("click", _markerOnClick);
+      });
+
+      var _markerOnClick = function (e) {
+        rot(hdg);
+        console.log("Selected: ", hdg);
+      };
+
+      function rtrim(text, chars) {
+        return text.toString().substr(0, chars);
+      }
+
+      // Function to calculate bearing between two points
+      function calculateBearing(lat1, lon1, lat2, lon2) {
+        var rad = Math.PI / 180;
+        var dLon = (lon2 - lon1) * rad;
+        var y = Math.sin(dLon) * Math.cos(lat2 * rad);
+        var x =
+          Math.cos(lat1 * rad) * Math.sin(lat2 * rad) -
+          Math.sin(lat1 * rad) * Math.cos(lat2 * rad) * Math.cos(dLon);
+        var bearing = Math.atan2(y, x) * (180 / Math.PI);
+        return (bearing + 360) % 360;
+      }
+
+      // Function to calculate distance between two points using the Haversine formula
+      function calculateDistance(lat1, lon1, lat2, lon2) {
+        var R = 6371; // Radius of the Earth in kilometers
+        var dLat = (lat2 - lat1) * (Math.PI / 180);
+        var dLon = (lon2 - lon1) * (Math.PI / 180);
+        var a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * (Math.PI / 180)) *
+            Math.cos(lat2 * (Math.PI / 180)) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var distance = R * c;
+        return distance;
+      }
+
+      // Variable to store the rectangle
+      var rectLoc;
+
+      // Locator finder
+      function fLoc(locator) {
+        console.log(locator);
+
+        switch (locator.length) {
+          case 2:
+            zoomLevel = 5;
+            break;
+          case 4:
+            zoomLevel = 9;
+            break;
+          case 6:
+            zoomLevel = 13;
+            break;
+          case 8:
+            zoomLevel = 17;
+            break;
+          default:
+            alert("Invalid locator!");
+            return;
+        }
+
+        // console.log(L.Maidenhead.indexToBBox(locator));
+
+        // Define the top-left and bottom-right coordinates (example coordinates)
+        var topLeft = [
+          L.Maidenhead.indexToBBox(locator)[0],
+          L.Maidenhead.indexToBBox(locator)[1],
+        ]; // Example coordinate
+        var bottomRight = [
+          L.Maidenhead.indexToBBox(locator)[2],
+          L.Maidenhead.indexToBBox(locator)[3],
+        ]; // Example coordinate
+
+        // Calculate the center of the rectangle
+        var centerLat = (topLeft[0] + bottomRight[0]) / 2;
+        var centerLng = (topLeft[1] + bottomRight[1]) / 2;
+        var center = [centerLat, centerLng];
+
+        // Remove the previous rectangle if it exists
+        if (rectLoc) {
+          rectLoc.remove();
+          console.log(locator, " 3.Removing locator Id: ", rectLoc._leaflet_id);
+          rectLoc = null;
+        }
+
+        // Optionally, add a rectangle to the map
+        rectLoc = L.rectangle([topLeft, bottomRight], {
+          color: "#ff7800",
+          weight: 1,
+        }).addTo(map);
+        console.log(locator, " New Locator Id: ", rectLoc._leaflet_id);
+
+        // Set the map view to the center of the rectangle
+        // Adjust the zoom level as needed
+        map.setView(center, zoomLevel);
+      }
+
+      function search(ele) {
+        if (event.key === "Enter") {
+          fLoc(ele.value);
+        }
+      }
+    </script>
+  </body>
+</html>
