@@ -8,6 +8,8 @@ const aURL = [
   ["add10d", "BACK", "#", "1", "R"],
   ["ff9100", "Refresh", "#", "1"],
   ["0dd1a7", "Help", "#", "1"],
+
+  ["2196F3", "APRS", "https://aprs.to/?center=43,-79&zoom=11", "1"],
   ["2196F3", "CLUBLOG", "https://clublog.org/livestream/VA3HDL", "1.7"],
   [
     "2196F3",
@@ -16,6 +18,14 @@ const aURL = [
     "1",
   ],
   ["2196F3", "DX CLUSTER", "https://dxcluster.ha8tks.hu/map/", "1"],
+
+  [
+    "2196F3",
+    "ADSB",
+    "https://globe.adsbexchange.com/",
+    "1",
+    "R",
+    ],
   [
     "2196F3",
     "LIGHTNING",
