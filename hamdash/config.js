@@ -111,3 +111,6 @@ const aIMG = [
     "https://www.hamqsl.com/solar100sc.php",
     "https://www.hamqsl.com/solarpich.php"],
 ];
+
+// Image rotation intervals in milliseconds per tile - If the line below is commented, tiles will be rotated every 5000 milliseconds (5s)
+const tileDelay = [30100,30200,30300,30400,30500,30600,30700,30800,30900,31000,31100,31200];
