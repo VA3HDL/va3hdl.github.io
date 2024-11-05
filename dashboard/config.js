@@ -34,7 +34,7 @@ const aURL = [
     [
         "2196F3",
         "ADSB",
-        "https://globe.adsbexchange.com/",
+        "https://globe.adsbexchange.com/?SiteLat=44.0157&SiteLon=-79.4591&zoom=9",
         "1",
         "R",
     ],
@@ -94,7 +94,7 @@ const aIMG = [
     // 4
     [
         "",
-        "http://192.168.0.111:8080/get_capture.bmp",
+        "https://globe.adsbexchange.com/?SiteLat=44.0157&SiteLon=-79.4591&zoom=9",
         // "http://158.58.130.148:80/mjpg/video.mjpg",
         // "http://130.237.58.178:80/mjpg/video.mjpg",
     ],
