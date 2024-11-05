@@ -162,8 +162,8 @@ const aIMG = [
 
 // Image rotation intervals in milliseconds per tile - If the line below is commented, tiles will be rotated every 5000 milliseconds (5s)
 const tileDelay =
-    [60100, 60200, 30300, 30400,
-        300500, 300600, 30700, 15000,
+    [60100, 60200, 30300, 99999,
+        300500, 300600, 99999, 15000,
         30800, 30900, 5000, 20000];
 // const tileDelay = [0,0,0,0,0,0,0,0,0,0,0,0];
 
