@@ -94,7 +94,7 @@ const aIMG = [
     // 4
     [
         "",
-        "https://globe.adsbexchange.com/?SiteLat=44.0157&SiteLon=-79.4591&zoom=9",
+        "iframe|https://globe.adsbexchange.com/?SiteLat=44.0157&SiteLon=-79.4591&zoom=9",
         // "http://158.58.130.148:80/mjpg/video.mjpg",
         // "http://130.237.58.178:80/mjpg/video.mjpg",
     ],
@@ -115,7 +115,7 @@ const aIMG = [
     ],
     // 7
     [
-        "Grey Line",
+        "",
         // "iframe||https://www.youtube.com/embed/Jm8wRjD3xVA?autoplay=1",
         "iframe|https://www.ventusky.com/?p=44.01;-79.45;8&l=wind-10m",
         // "https://www.timeanddate.com/scripts/sunmap.php?iso=now",
