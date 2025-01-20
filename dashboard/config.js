@@ -5,11 +5,6 @@ const topBarCenterText = `VA3HDL - FN04ga`;
 // The values are [color code, menu text, target link, scale factor, side],
 // add new lines following the structure for extra menu options. The comma at the end is important!
 const aURL = [
-    ["add10d", "BACK", "#", "1"],
-    ["add10d", "BACK", "#", "1", "R"],
-    ["ff9100", "Refresh", "?_=" + Date.now(), "1"],
-    ["0dd1a7", "Help", "#", "1"],
-
     ["2196F3", "CAT", "../CAThtml/CAT_Frequencies.html", "1"],
     ["2196F3", "HAMCLOCK", "http://192.168.0.111:8081/live.html", "1"],
     ["2196F3", "HC Clone", "../hamclock/hamclock.html", "1"],
