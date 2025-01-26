@@ -1,5 +1,8 @@
 // CUT START
 var topBarCenterText = `VA3HDL - FN04ga`;
+// Grid layout
+var layout_cols = 4;
+var layout_rows = 3;
 // Menu items
 // Structure is as follows HTML Color code, Option, target URL, scaling 1=Original Size, side (optional, nothing is Left, "R" is Right)
 // The values are [color code, menu text, target link, scale factor, side],
