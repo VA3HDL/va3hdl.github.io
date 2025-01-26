@@ -1,10 +1,10 @@
 // CUT START
-const topBarCenterText = `VA3HDL - FN04ga`;
+var topBarCenterText = `VA3HDL - FN04ga`;
 // Menu items
 // Structure is as follows HTML Color code, Option, target URL, scaling 1=Original Size, side (optional, nothing is Left, "R" is Right)
 // The values are [color code, menu text, target link, scale factor, side],
 // add new lines following the structure for extra menu options. The comma at the end is important!
-const aURL = [
+var aURL = [
     ["2196F3", "CAT", "../CAThtml/CAT_Frequencies.html", "1"],
     ["2196F3", "HAMCLOCK", "http://192.168.0.111:8081/live.html", "1"],
     ["2196F3", "HC Clone", "../hamclock/hamclock.html", "1"],
@@ -71,8 +71,8 @@ const aURL = [
 // the comma at the end is important!
 // You can't add more items because there are only 12 placeholders on the dashboard
 // but you can replace the titles and the images with anything you want.
-const currentDate = new Date();
-const aIMG = [
+var currentDate = new Date();
+var aIMG = [
     // 1
     ["Radar NA", "https://radar.weather.gov/ridge/standard/CONUS-LARGE_loop.gif", "https://radar.weather.gov/ridge/standard/CONUS_loop.gif"],
     // 2
@@ -156,10 +156,10 @@ const aIMG = [
 ];
 
 // Image rotation intervals in milliseconds per tile - If the line below is commented, tiles will be rotated every 5000 milliseconds (5s)
-const tileDelay =
+var tileDelay =
     [60100, 60200, 30300, 99999,
         300500, 300600, 99999, 15000,
         30800, 30900, 5000, 20000];
-// const tileDelay = [0,0,0,0,0,0,0,0,0,0,0,0];
+// var tileDelay = [0,0,0,0,0,0,0,0,0,0,0,0];
 
 // CUT END

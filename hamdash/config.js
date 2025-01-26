@@ -1,9 +1,9 @@
-const topBarCenterText = `VA3HDL - Canada`;
+var topBarCenterText = `VA3HDL - Canada`;
 // Menu items
 // Structure is as follows HTML Color code, Option, target URL, scaling 1=Original Size, side (optional, nothing is Left, "R" is Right)
 // The values are [color code, menu text, target link, scale factor, side],
 // add new lines following the structure for extra menu options. The comma at the end is important!
-const aURL = [
+var aURL = [
   ["2196F3", "APRS", "https://aprs.to/?center=43,-79&zoom=11", "1"],
   ["2196F3", "CLUBLOG", "https://clublog.org/livestream/VA3HDL", "1.7"],
   [
@@ -61,9 +61,9 @@ const aURL = [
 // the comma at the end is important!
 // You can't add more items because there are only 12 placeholders on the dashboard
 // but you can replace the titles and the images with anything you want.
-const currentDate = new Date();
+var currentDate = new Date();
 currentDate.setDate(currentDate.getDate() - 1);
-const aIMG = [
+var aIMG = [
   ["RADAR", "https://radar.weather.gov/ridge/standard/CONUS_loop.gif"],
   [
     "LOCAL RADAR",
@@ -109,4 +109,4 @@ const aIMG = [
 ];
 
 // Image rotation intervals in milliseconds per tile - If the line below is commented, tiles will be rotated every 5000 milliseconds (5s)
-const tileDelay = [30100,30200,30300,30400,30500,30600,30700,30800,30900,31000,31100,31200];
+var tileDelay = [30100,30200,30300,30400,30500,30600,30700,30800,30900,31000,31100,31200];
