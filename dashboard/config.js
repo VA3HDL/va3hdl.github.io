@@ -163,6 +163,10 @@ var tileDelay =
     [60100, 60200, 30300, 99999,
         300500, 300600, 99999, 15000,
         30800, 30900, 5000, 20000];
-// var tileDelay = [0,0,0,0,0,0,0,0,0,0,0,0];
+
+var aRSS = [
+    ["https://www.amsat.org/feed/"],          // Example RSS feed
+    ["https://daily.hamweekly.com/atom.xml"], // Example Atom feed
+    ];
 
 // CUT END

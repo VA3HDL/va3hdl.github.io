@@ -113,3 +113,8 @@ var aIMG = [
 
 // Image rotation intervals in milliseconds per tile - If the line below is commented, tiles will be rotated every 5000 milliseconds (5s)
 var tileDelay = [30100,30200,30300,30400,30500,30600,30700,30800,30900,31000,31100,31200];
+
+var aRSS = [
+  ["https://www.amsat.org/feed/"],          // Example RSS feed
+  ["https://daily.hamweekly.com/atom.xml"], // Example Atom feed
+  ];
