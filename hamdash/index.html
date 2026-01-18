@@ -17,6 +17,7 @@
     <meta http-equiv="Cache-directive: no-cache" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="VA3HDL Ham Radio Dashboard" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -31,7 +32,7 @@
     <!--
 	Hamdash
 	License: MIT
-  Copyright (c) 2025 Pablo Sabbag, VA3HDL
+  Copyright (c) 2026 Pablo Sabbag, VA3HDL
 	https://www.va3hdl.com/projects/hamdash
 
   Credits:
@@ -194,7 +195,7 @@ db   8D    88       88    88booo. 88.     db   8D
       /* Style for the image titles */
       .image-title {
         position: absolute;
-        top: 6%;
+        bottom: 6%;
         left: 50%;
         transform: translate(-50%, -50%);
         color: white; /* font color */
@@ -232,7 +233,7 @@ db   8D    88       88    88booo. 88.     db   8D
       }
 
       /* Style for the left menu options */
-      .menu {
+      .menuL {
         display: grid;
         grid-gap: 3px;
         position: absolute;
@@ -257,7 +258,7 @@ db   8D    88       88    88booo. 88.     db   8D
         transition: 0.3s;
       }
 
-      #myMenu:hover {
+      #myMenuL:hover {
         width: 7vw;
         left: 0px;
       }
@@ -267,7 +268,7 @@ db   8D    88       88    88booo. 88.     db   8D
         right: 0px;
       }
 
-      #mySidenav a {
+      #mySidenavL a {
         position: relative;
         float: inline-start;
         left: calc(-0.2vw - 10px);
@@ -289,7 +290,7 @@ db   8D    88       88    88booo. 88.     db   8D
         box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.5);
       }
 
-      #mySidenav a:hover {
+      #mySidenavL a:hover {
         left: 0;
       }
 
@@ -319,6 +320,35 @@ db   8D    88       88    88booo. 88.     db   8D
         right: 0;
         width: 7vw;
       }
+
+      .menu-link.menu-core::before { 
+        content: '★'; 
+        margin-right:0px;
+        margin-left:0px;
+        opacity:0.8;
+        /*
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        */
+      }
+      
+      .menu-link.menu-config::before { 
+        content: '⚙️'; 
+        margin-right:0px;
+        margin-left:0px;
+        opacity:0.8; 
+        display: inline-block; 
+        transform: scale(0.7); 
+        transform-origin: center;
+        /*
+        position: absolute;
+        top: 1px;
+        left: 1px; 
+        */
+      }
+
+      .menu-link.menu-user::before { content: ''; margin-right:1px; }
 
       .overlay {
         display: none;
@@ -481,7 +511,8 @@ db   8D    88       88    88booo. 88.     db   8D
       .rss-ticker-content {
         display: inline-block;
         padding-left: 100%;
-        animation: ticker 90s linear infinite;
+        animation: ticker var(--ticker-duration, 90s) linear infinite;        
+        animation-play-state: running; /* Default state is running */
       }
 
       .rss-ticker-content a {
@@ -491,7 +522,7 @@ db   8D    88       88    88booo. 88.     db   8D
 
       @keyframes ticker {
         0% {
-          transform: translateX(0);
+          transform: translateX(0%);
         }
         100% {
           transform: translateX(-100%);
@@ -567,8 +598,8 @@ db   8D Y8b  d8 88 `88.   .88.   88         88    db   8D
             ["Tile 12", ["https://picsum.photos/seed/picsum/200/300"], 30000],
           ],
           aRSS: [
-            ["https://www.amsat.org/feed/"],          // Example RSS feed
-            ["https://daily.hamweekly.com/atom.xml"], // Example Atom feed
+            ["https://www.amsat.org/feed/", 60],           // Example RSS feed
+            ["https://daily.hamweekly.com/atom.xml", 60], // Example Atom feed
           ],
         };
 
@@ -618,6 +649,7 @@ db   8D Y8b  d8 88 `88.   .88.   88         88    db   8D
         updateFeedTable = () => {
           updateTable("feedTable", settings.aRSS, [            
             "Feed URL",
+            "Refresh Interval (minutes)",
           ]);
         };
 
@@ -748,7 +780,8 @@ db   8D Y8b  d8 88 `88.   .88.   88         88    db   8D
           settings.aRSS = Array.from(feedTableRows).map(row => {
             const cells = row.querySelectorAll("td");
             return [
-              cells[0].querySelector("input").value
+              cells[0].querySelector("input").value,              // Feed URL
+              parseInt(cells[1].querySelector("input").value, 10) // Refresh Interval
             ];
           });
           
@@ -984,7 +1017,8 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
         document.getElementById('CenterText').onblur = updateValue;
         document.getElementById('layout_cols').onblur = updateValue;
         document.getElementById('layout_rows').onblur = updateValue;
-      });
+       
+      }); // End of DOMContentLoaded here
       // End Settings Section
 
       // db    db d888888b d888888b db      d888888b d888888b db    db      .d8888. d88888b  .o88b. d888888b d888888b  .d88b.  d8b   db
@@ -1040,29 +1074,86 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
       }
 
       async function loadConfig() {
-        const isFileProtocol = window.location.protocol === 'file:';
+        // allow override via URL param: ?config=ops.js
+        const urlParams = new URLSearchParams(window.location.search);
+        const configParam = urlParams.get("config");
+        const configFile = configParam ? configParam : "config.js";
+
+        const isFileProtocol = window.location.protocol === "file:";
             if (isFileProtocol) {
-              // console.warn('Running from file system, some features may not work due to browser security restrictions.');
-              // Directly load the script without checking if it exists
-              const script = document.createElement('script');
-              script.src = 'config.js';
-              script.onload = () => {
-                console.log('config.js loaded successfully');
-                window.curSettingsSrc = "config.js from file system";
+          // running from filesystem — load requested config directly
+          const script = document.createElement("script");
+          script.src = configFile;
+          script.onload = async () => {
+            console.log(`${configFile} loaded successfully (file protocol)`);
+            // wait for config to finish any async work (if config sets window.configReady)
+            if (window.configReady && typeof window.configReady.then === "function") {
+              try { await window.configReady; } catch (e) { console.warn("configReady rejected:", e); }
+            }
+            window.curSettingsSrc = `${configFile} from file system`;
+            // If user loaded a non-default config file, ensure quick access to default `config.js`
+            try {
+              if (configFile !== 'config.js') {
+                window.aURL = window.aURL || [];
+                if (!window.aURL.some(item => Array.isArray(item) && (String(item[1]).toLowerCase().endsWith('config.js') || String(item[2] || '').toLowerCase().endsWith('config.js')))) {
+                  window.aURL.unshift(["212ff3ff", "Config", "config.js", "1", "R"]);
+                }
+              }
+            } catch (e) { console.warn('Could not add quick config menu item', e); }
                 start();
               };
               script.onerror = (error) => {
-                console.error('Failed to load config.js:', error);
-                // Try to recover
+            console.error(`Failed to load ${configFile}:`, error);
                 minimalConfiguration();
               };
               document.head.appendChild(script);
             } else {
-              await loadScriptIfExists('config.js');
-              console.log('config.js loaded successfully');
-              window.curSettingsSrc = "config.js from server";
-              start();
+          // running from web server — attempt to fetch the configured file
+          try {
+            await loadScriptIfExists(configFile);
+            // wait for config async readiness if provided
+            if (window.configReady && typeof window.configReady.then === "function") {
+              try { await window.configReady; } catch (e) { console.warn("configReady rejected:", e); }
             }
+            console.log(`${configFile} loaded successfully (server)`);
+            window.curSettingsSrc = `${configFile} from server`;
+            // If user loaded a non-default config file, ensure quick access to default `config.js`
+            try {
+              if (configFile !== 'config.js') {
+                window.aURL = window.aURL || [];
+                if (!window.aURL.some(item => Array.isArray(item) && (String(item[1]).toLowerCase().endsWith('config.js') || String(item[2] || '').toLowerCase().endsWith('config.js')))) {
+                  window.aURL.unshift(["212ff3ff", "Config", "config.js", "1", "R"]);
+                }
+              }
+            } catch (e) { console.warn('Could not add quick config menu item', e); }
+              start();
+          } catch (err) {
+            console.error(`Failed to load ${configFile}:`, err);
+            // minimalConfiguration();
+          }
+        }
+      }
+
+      // Open OS file picker and reload page with the selected filename as ?config=<filename>
+      function openConfigFileDialog() {
+        let input = document.getElementById('configFileInput');
+        if (!input) {
+          input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.js,text/javascript';
+          input.id = 'configFileInput';
+          input.style.display = 'none';
+          input.addEventListener('change', (ev) => {
+            const file = ev.target.files && ev.target.files[0];
+            if (!file) return;
+            // Use only the filename (no path). The file must be accessible by the page when reloading.
+            const filename = file.name;
+            const newUrl = window.location.pathname + '?config=' + encodeURIComponent(filename);
+            window.location.href = newUrl;
+          });
+          document.body.appendChild(input);
+        }
+        input.click();
       }
 
       async function main() {
@@ -1126,7 +1217,7 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
       help += "Right click on an image to display the next one.\n";
       help += "Images rotates every 30 seconds automatically by default.\n";
 
-      const currentVersion = "v2025.03.29";
+      const currentVersion = "v2026.01.17";
 
       async function getLatestVersion() {
         try {
@@ -1211,12 +1302,29 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
       function MenuOpt(num) {
         window.stop();
         rotStop();
-        if (aURL[num][1].toLowerCase() == "refresh") {
+
+        // If the menu title or URL is a config filename (e.g. "satellite.js"), reload with ?config=
+        const title = String(aURL[num][1] || "");
+        const link = String(aURL[num][2] || "");
+        const menuText = title;
+        if (title.toLowerCase().endsWith(".js") || link.toLowerCase().endsWith(".js")) {
+          // Prefer the explicit URL if it contains the filename, otherwise use the title
+          const filename = link.toLowerCase().endsWith(".js") ? link : title;
+          const newUrl = window.location.pathname + "?config=" + encodeURIComponent(filename);
+          window.location.href = newUrl;
+          return;
+        }
+
+        if (menuText.toLowerCase() == "refresh") {
           location.reload();
           setRot();
-        } else if (aURL[num][1].toLowerCase() == "help") {
+        } else if (menuText.toLowerCase() == "load cfg") {
+          // open file picker and reload page with ?config=<filename>
+          openConfigFileDialog();
+          return;
+        } else if (menuText.toLowerCase() == "help") {
           alert(help);
-        } else if (aURL[num][1].toLowerCase() == "setup") {
+        } else if (menuText.toLowerCase() == "setup") {
           // Configure visualization
           document.getElementById("FullScreen").style.display = "none";
           document.getElementById("fixedSection").style.display = "block";
@@ -1258,7 +1366,7 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
           updateMenuTable();
           updateFeedTable();
           adjustDashboardItems();
-        } else if (aURL[num][1].toLowerCase() == "sources") {
+        } else if (menuText.toLowerCase() == "sources") {
           document.getElementById("array1").innerHTML =
             "<br>" + formatArray(aURL) + "<br><br>";
           document.getElementById("array2").innerHTML =
@@ -1266,14 +1374,14 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
           document.getElementById("array3").innerHTML =
             "<br>" + formatArray(aRSS) + "<br><br>";            
           document.getElementById("array4").innerHTML =
-           `<br>Copyright (c) 2025 Pablo Sabbag, VA3HDL | Open Source License: MIT<br>
+           `<br>Copyright (c) 2026 Pablo Sabbag, VA3HDL | Open Source License: MIT<br>
             <br>Dashboard codebase version: ${currentVersion}<br><br>`;
           document.getElementById("overlay").style.display = "block";
-        } else if (aURL[num][1].toLowerCase() == "update") {
+        } else if (menuText.toLowerCase() == "update") {
           window
             .open("https://github.com/VA3HDL/hamdashboard/releases/", "_blank")
             .focus();
-        } else if (aURL[num][1].toLowerCase() == "back"){
+        } else if (menuText.toLowerCase() == "back"){
           document.getElementById("FullScreen").src = "about:blank";
           document.getElementById("iFrameContainer").style.zIndex = -2;
           document.getElementById("iFrameContainer").style.backgroundColor = "black";
@@ -1404,16 +1512,37 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
         }
       }
 
+      function updateTickerSpeed() {
+        const rssTickerContent = document.querySelector(".rss-ticker-content");
+        if (rssTickerContent) {
+          // Calculate the width of the content and the container
+          const contentWidth = rssTickerContent.scrollWidth;
+          const containerWidth = rssTickerContent.parentElement.offsetWidth;
+        
+          // Define a base speed (e.g., 180px per second)
+          const baseSpeed = 180; // pixels per second
+        
+          // Calculate the duration based on the content width
+          const duration = (contentWidth + containerWidth) / baseSpeed;
+        
+          // Update the CSS variable for the animation duration
+          rssTickerContent.style.setProperty("--ticker-duration", `${duration}s`);
+          // console.log(`Updated ticker speed: ${duration}s`);
+        }
+      }
+
       // Function to fetch and display the RSS feed
       function fetchAndDisplayRss() {            
         const proxyUrl = "https://corsproxy.io/";
         const rssTickerContent = document.getElementById("rss-ticker-content");
             
-        let tickerText = "";
+        // Array to store the content of each feed
+        const feedContents = new Array(aRSS.length).fill("");
             
-        // console.log("Fetching RSS feeds...");
-        Promise.all(
-          aRSS.map((rssUrl) =>
+        console.log("Fetching RSS feeds...");
+        aRSS.forEach(([rssUrl, interval], index) => {
+          const fetchFeed = () => {
+            console.log(`Fetching feed: ${rssUrl}`);
             fetch(proxyUrl + "?url=" + encodeURIComponent(rssUrl))
               .then((response) => response.text())
               .then((data) => {
@@ -1426,8 +1555,13 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
                   itmTag = "entry"; // Switch to Atom if "entry" is found
                 }
               
+                const feedTitle = xmlDoc.querySelector("channel > title, feed > title")?.textContent || "Unknown Feed";
+                const lastUpdated = xmlDoc.querySelector("channel > lastBuildDate, feed > updated")?.textContent || "Unknown Time";
+
                 const items = xmlDoc.querySelectorAll(itmTag);
-                // console.log(`Found ${items.length} items in feed: ${rssUrl}`);
+                console.log(`Found ${items.length} items in feed: ${rssUrl}`);
+              
+                let feedText = `<span style="font-size: 0.9em; color: #aaa;"> ${feedTitle} - Last Updated: ${lastUpdated} </span> - `;
               
                 items.forEach((item) => {
                   const title = item.querySelector("title").textContent;
@@ -1447,16 +1581,28 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
                 
                   // console.log("title:", title);
                   // console.log("link:", link);
-                  tickerText += `<a href="${link}" target="_blank" style="margin-right: 50px;">${title}</a>`;
+                  feedText += `<a href="${link}" target="_blank" style="margin-right: 50px;">${title}</a>`;
                 });
+              
+                // Update the content for this feed in the array
+                feedContents[index] = feedText;
+
+                // Combine all feeds and update the ticker content
+                rssTickerContent.innerHTML = feedContents.join("") || "Failed to load RSS feeds.";
+
+                // Update the ticker speed
+                updateTickerSpeed();
               })
               .catch((error) => {
                 console.error(`Error fetching RSS feed from ${rssUrl}:`, error);
-              })
-          )
-        ).then(() => {
-          // console.log("All feeds processed.");
-          rssTickerContent.innerHTML = tickerText || "Failed to load RSS feeds.";
+              });
+          };
+        
+          // Fetch the feed immediately
+          fetchFeed();
+        
+          // Set up periodic refresh based on the interval (in minutes)
+          setInterval(fetchFeed, interval * 60 * 1000);
         });
       }
 
@@ -1508,39 +1654,61 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
         }
 
         // Get the parent div for Menu container
-        var parentDiv = document.getElementById("myMenu");
+        var parentDivL = document.getElementById("myMenuL");
         var parentDivR = document.getElementById("myMenuR");
 
+        // Preppend the Load Cfg option to the right side menu
+        if (typeof disableLdCfg === "undefined" || !disableLdCfg) {
+          aURL.unshift(
+            ["FF0000", "Load Cfg", "", "1", "R"]
+          )
+        }
+        
         // Preppend the default options to the menu
         aURL.unshift(
           ["add10d", "BACK", "", "1", "L"],
+          ["0dd1a7", "Help", "", "1", "L"],
           ["add10d", "BACK", "", "1", "R"],
-          ["ff9100", "Refresh", "?_=" + Date.now(), "1"],
-          ["0dd1a7", "Help", "#", "1", "L"]
+          ["ff9100", "Refresh", "?_=" + Date.now()],
         );
 
         // Append the Setup and Sources option to the right side menu
         if (typeof disableSetup === "undefined" || !disableSetup) {
           aURL.push(
-            ["ff9100", "Setup", "#", "1", "R"]
+            ["ff9100", "Setup", "", "1", "R"]
           )
         }
 
         aURL.push(
-          ["0dd1a7", "Sources", "#", "1", "R"]
+          ["0dd1a7", "Sources", "", "1", "R"]
         );
 
         // Append the Update option to the right side menu if needed
         if (bUpdate) {
-          aURL.push(["FF0000", "Update", "#", "1", "R"]);
+          aURL.push(["FF0000", "Update", "", "1", "R"]);
         }
 
         // Append the new div to the parent div
         aURL.forEach(function (innerArray, index) {
+          
+          const title = String(innerArray[1] || '').trim();
+          const link = String(innerArray[2] || '').trim();
+          const titleLower = title.toLowerCase();
+          const linkLower = link.toLowerCase();
+          const coreNames = ['back','refresh','load cfg','help','setup','sources','update']; 
+          
           // Create a new div element
           var newDiv = document.createElement("div");
           var color = innerArray[0].replace("#", "");
-          newDiv.innerHTML = `<a href="#" style="background-color:#${color};" onclick="MenuOpt(${index})">${innerArray[1]}</a>`;
+
+          let type = 'user';
+          if (coreNames.includes(titleLower)) 
+            type = 'core';
+          else if (titleLower.endsWith('.js') || linkLower.endsWith('.js')) 
+            type = 'config';
+
+          newDiv.innerHTML = `<a href="#" class="menu-link menu-${type}" style="background-color:#${color};" onclick="MenuOpt(${index})">${innerArray[1]}</a>`;
+
           if (innerArray[4] == "R") {
             // Set some properties for the new div
             newDiv.id = "mySidenavR";
@@ -1548,9 +1716,9 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
             parentDivR.appendChild(newDiv);
           } else {
             // Set some properties for the new div
-            newDiv.id = "mySidenav";
+            newDiv.id = "mySidenavL";
             newDiv.className = "sidenav";
-            parentDiv.appendChild(newDiv);
+            parentDivL.appendChild(newDiv);
           }
         });
 
@@ -1663,6 +1831,15 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
                 
           // Call the function to fetch and display RSS feeds
           fetchAndDisplayRss();
+
+          // Add event listeners for pause and resume functionality
+          rssTickerContent.addEventListener("mouseenter", () => {            
+            rssTickerContent.style.animationPlayState = "paused";
+          });
+        
+          rssTickerContent.addEventListener("mouseleave", () => {            
+            rssTickerContent.style.animationPlayState = "running";
+          });
         }
 
         setRot();
@@ -1808,6 +1985,7 @@ Y8888P'  `Y88P'  Y8888D'    YP
               <thead>
                 <tr>
                   <th>Feed URL</th>
+                  <th>Refresh Interval (minutes)</th>
                   <th>Actions</th>              
                 </tr>
               </thead>
@@ -1830,7 +2008,7 @@ Y8888P'  `Y88P'  Y8888D'    YP
       />
     </div>
 
-    <div id="myMenu" class="menu">
+    <div id="myMenuL" class="menuL">
       <!-- Left Menu container -->
     </div>
 
