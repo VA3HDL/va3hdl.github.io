@@ -2116,7 +2116,7 @@ var tileDelay = ${JSON.stringify(settings.aImages.map(item => item[2]), null, 2)
           
             // Try retry if we haven't exceeded max retries
           if (retryCount < maxRetries) {
-              const retryDelay = (retryCount + 1) * 3000; // 3s, 6s
+              const retryDelay = (retryCount + 1) * 30000; // 3s, 6s
               console.log(`⏳ Retrying ${rssUrl} in ${retryDelay/1000} seconds...`);
               setTimeout(() => fetchFeed(retryCount + 1, maxRetries), retryDelay);
           } else {
